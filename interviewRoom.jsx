@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import useWebSocket from "react-use-websocket";
 import { Button, Container, Row, Col, Card, CardBody } from "reactstrap";
-
+import comapnyImage from "../../../assets/images/company-logo/company-logo.jpg"
 import join from "../../../utils/sounds/join.mp3";
 import { toast } from "react-toastify";
 import PhoneEnabledIcon from "@mui/icons-material/PhoneEnabled";
@@ -18,12 +18,9 @@ import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
 import "../../../assets/css/Meeting.css";
 import { useStore } from "../../../App";
-import BreadCrumb from "../../../components/common/breadcrumb.component";
-import BASE_URL_WITH_PROTOCOL from "../../../utils/dynamicUrl";
 
-export default function InterviewRoomCompany() {
+export default function InterviewRoomCandidate() {
 	const navigate = useNavigate();
-	let baseURL = `${BASE_URL_WITH_PROTOCOL}`;
 	const userType = useStore((state) => state.userType);
 	const accessToken = useStore((state) => state.accessToken);
 	const { id } = useParams();
@@ -52,27 +49,6 @@ export default function InterviewRoomCompany() {
 		id: "",
 		is_host: false,
 	});
-
-	// const configuration = {
-	// 	iceServers: [
-	// 	  { urls: 'stun:global.stun.twilio.com:3478' },
-	// 	  {
-	// 		urls: 'turn:global.turn.twilio.com:3478?transport=udp',
-	// 		username: '40a944cb1fa12ca67b31e688f5056c2a95eba27bc3d869cdf85b7c99ea613566',
-	// 		credential: 'bhS3f+H2gcY2YN/tBlwMZyzIzdxdsifwZzCLfSSZmvM='
-	// 	  },
-	// 	  {
-	// 		urls: 'turn:global.turn.twilio.com:3478?transport=tcp',
-	// 		username: '40a944cb1fa12ca67b31e688f5056c2a95eba27bc3d869cdf85b7c99ea613566',
-	// 		credential: 'bhS3f+H2gcY2YN/tBlwMZyzIzdxdsifwZzCLfSSZmvM='
-	// 	  },
-	// 	  {
-	// 		urls: 'turn:global.turn.twilio.com:443?transport=tcp',
-	// 		username: '40a944cb1fa12ca67b31e688f5056c2a95eba27bc3d869cdf85b7c99ea613566',
-	// 		credential: 'bhS3f+H2gcY2YN/tBlwMZyzIzdxdsifwZzCLfSSZmvM='
-	// 	  }
-	// 	]
-	//   };
 
 	const iceServers = [
 		{
@@ -112,6 +88,7 @@ export default function InterviewRoomCompany() {
 
 	const createPeerConnection = () => {
 		const newPeer = new RTCPeerConnection(configuration);
+
 		newPeer.ontrack = (event) => {
 			setRemoteStream(event.streams[0]);
 		};
@@ -131,6 +108,7 @@ export default function InterviewRoomCompany() {
 
 	const peerRef = useRef(createPeerConnection());
 	const peer = peerRef.current;
+
 	useEffect(() => {
 		if (peer.remoteDescription) {
 			addIceCandidates();
@@ -436,16 +414,16 @@ export default function InterviewRoomCompany() {
 			// Stop screen sharing and revert to camera
 			const videoTrack = localStream.getVideoTracks()[0]; // Get the local camera video track
 			const videoSender = peer.getSenders().find((s) => s.track && s.track.kind === "video"); // Find video sender
-
+	
 			if (videoSender) {
 				await videoSender.replaceTrack(videoTrack); // Replace with camera video track
 			}
-
+	
 			// Stop the shared screen stream
 			if (sharedScreenStream) {
 				sharedScreenStream.getTracks().forEach((track) => track.stop());
 			}
-
+	
 			setSharedScreenStream(null); // Clear shared screen
 			setIsScreenShared(false);
 		} else {
@@ -456,16 +434,16 @@ export default function InterviewRoomCompany() {
 					},
 					audio: false, // Audio from screen sharing is optional, set to true if needed
 				});
-
+	
 				const screenVideoTrack = stream.getVideoTracks()[0]; // Get the screen video track
 				const videoSender = peer.getSenders().find((s) => s.track && s.track.kind === "video"); // Find the sender for video
-
+	
 				if (videoSender) {
 					await videoSender.replaceTrack(screenVideoTrack); // Replace with screen video track
 				}
-
+	
 				setSharedScreenStream(stream); // Store the shared screen stream
-
+	
 				stream.getTracks()[0].onended = () => {
 					const videoTrack = localStream.getVideoTracks()[0]; // Revert to camera video when screen sharing stops
 					if (videoSender) {
@@ -474,14 +452,14 @@ export default function InterviewRoomCompany() {
 					setSharedScreenStream(null);
 					setIsScreenShared(false);
 				};
-
+	
 				setIsScreenShared(true);
 			} catch (error) {
 				console.error("Error sharing screen:", error);
 			}
 		}
 	};
-
+	
 	const handleDisplayMessaege = () => {
 		if (myDetails.is_host) {
 			if (
@@ -545,24 +523,24 @@ export default function InterviewRoomCompany() {
 
 	return (
 		<Container fluid className="page-content video-call-container" style={{ marginTop: "70px" }}>
-			<BreadCrumb title="Interview Room" />
-
 			<Card className="video-card">
-				{!remoteStream && <div className="container">
-					<div className="interview-card text-start p-3 my-3">
-						<div className="row">
-							<div className="col-3">
-								<img src={baseURL + interviewDetails?.candidate_profile_picture} alt="" style={{ width: "100%" }} />
-							</div>
-							<div className="col-9">
-								<small className="text-dark px-2 py-1 rounded" style={{ background: "#fdc800" }}>{interviewDetails?.job_type}</small>
-								<h2 className="text-primary fw-bold">{interviewDetails?.job_title}</h2>
-								<h5 className="fw-bold"><i class="fa-solid fa-user-tie me-2"></i>{interviewDetails?.candidate_name}</h5>
-								<p className="text-dark mb-0">{interviewDetails?.description}</p>
+				{!remoteStream && (
+					<div className="container">
+						<div className="interview-card text-start p-3 my-3">
+							<div className="row">
+								<div className="col-3">
+									<img src={comapnyImage} alt="" style={{ width: "100%" }} />
+								</div>
+								<div className="col-9">
+									<small className="text-dark px-2 py-1 rounded" style={{ background: "#fdc800" }}>{interviewDetails?.job_type}</small>
+									<h2 className="text-primary fw-bold">{interviewDetails?.job_title}</h2>
+									<h5 className="fw-bold"><i class="fa-regular fa-building me-2"></i>{interviewDetails?.company_name}</h5>
+									<p className="text-dark mb-0">{interviewDetails?.description}</p>
+								</div>
 							</div>
 						</div>
 					</div>
-				</div>}
+				)}
 				<CardBody className="video-card-body">
 					<>
 						{!requestedCall &&
@@ -587,6 +565,9 @@ export default function InterviewRoomCompany() {
 								>
 									<PhoneEnabledIcon />
 								</Button>
+								<audio autoPlay loop>
+									<source src={join} type="audio/mpeg" />
+								</audio>
 							</div>
 						)}
 					</>
@@ -680,7 +661,7 @@ export default function InterviewRoomCompany() {
 							</>
 						) : (
 							<>
-								< Col md={6} className="video-column">
+								<Col md={6} className="video-column">
 									{localStream && (
 										<div
 											className="video-container local-video"
@@ -689,8 +670,8 @@ export default function InterviewRoomCompany() {
 											<video
 												className="local-video"
 												autoPlay
-												// muted
 												playsInline
+												muted
 												ref={(ref) => {
 													if (ref && localStream) {
 														ref.srcObject = localStream;
@@ -750,12 +731,12 @@ export default function InterviewRoomCompany() {
 											</Button>
 										</div>
 									</Col>
-								)
-
-								}
+								)}
 							</>
 						)
 						}
+
+
 					</Row>
 					<div className="button-group">
 						{onGoingCall && (
@@ -797,6 +778,6 @@ export default function InterviewRoomCompany() {
 					</div>
 				</CardBody>
 			</Card>
-		</Container >
+		</Container>
 	);
 }
